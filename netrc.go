@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -55,31 +54,6 @@ func (n *Netrc) Machine(name string) *Login {
 	return nil
 }
 
-// AddMachine adds a machine
-func (n *Netrc) AddMachine(name, login, password string) {
-	machine := n.Machine(name)
-	if machine == nil {
-		machine = &Login{}
-		n.logins = append(n.logins, machine)
-	}
-	machine.Name = name
-	machine.tokens = []string{"machine ", name, "\n"}
-	machine.Set("login", login)
-	machine.Set("password", password)
-}
-
-// RemoveMachine remove a machine
-func (n *Netrc) RemoveMachine(name string) {
-	for i, machine := range n.logins {
-		if machine.Name == name {
-			n.logins = append(n.logins[:i], n.logins[i+1:]...)
-			// continue removing but start over since the indexes changed
-			n.RemoveMachine(name)
-			return
-		}
-	}
-}
-
 // Render out the netrc file to a string
 func (n *Netrc) Render() string {
 	var b bytes.Buffer
@@ -92,26 +66,6 @@ func (n *Netrc) Render() string {
 		}
 	}
 	return b.String()
-}
-
-// Save the file to disk
-func (n *Netrc) Save() error {
-	body := []byte(n.Render())
-	if filepath.Ext(n.Path) == ".gpg" {
-		cmd := exec.Command("gpg", "-a", "--batch", "--default-recipient-self", "-e")
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			return err
-		}
-		stdin.Write(body)
-		stdin.Close()
-		cmd.Stderr = os.Stderr
-		body, err = cmd.Output()
-		if err != nil {
-			return err
-		}
-	}
-	return ioutil.WriteFile(n.Path, body, 0600)
 }
 
 func read(path string) (io.Reader, error) {
@@ -219,20 +173,4 @@ func (m *Login) Get(name string) string {
 		}
 		i = i + 4
 	}
-}
-
-// Set a property on the machine
-func (m *Login) Set(name, value string) {
-	i := 4
-	if m.IsDefault {
-		i = 2
-	}
-	for i+2 < len(m.tokens) {
-		if m.tokens[i] == name {
-			m.tokens[i+2] = value
-			return
-		}
-		i = i + 4
-	}
-	m.tokens = append(m.tokens, "  ", name, " ", value, "\n")
 }

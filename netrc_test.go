@@ -2,7 +2,6 @@ package netrc
 
 import (
 	"io/ioutil"
-	"os"
 	"testing"
 
 	. "gopkg.in/check.v1"
@@ -23,48 +22,6 @@ func (s *NetrcSuite) TestLogin(c *C) {
 	c.Check(heroku.Get("password"), Equals, "foo")
 	body, _ := ioutil.ReadFile(f.Path)
 	c.Check(f.Render(), Equals, string(body))
-}
-
-func (s *NetrcSuite) TestSave(c *C) {
-	f, err := Parse("./examples/login.netrc")
-	c.Assert(err, IsNil)
-	f.Path = "./examples/login-new.netrc"
-	err = f.Save()
-	c.Assert(err, IsNil)
-	a, _ := ioutil.ReadFile("./examples/login-new.netrc")
-	b, _ := ioutil.ReadFile("./examples/login.netrc")
-	c.Check(string(a), Equals, string(b))
-	os.Remove("./examples/login-new.netrc")
-}
-
-func (s *NetrcSuite) TestAdd(c *C) {
-	f, err := Parse("./examples/login.netrc")
-	c.Assert(err, IsNil)
-	f.AddMachine("m", "l", "p")
-	c.Check(f.Render(), Equals, "# this is my login netrc\nmachine api.heroku.com\n  login jeff@heroku.com # this is my username\n  password foo\n"+
-		"machine m\n  login l\n  password p\n")
-}
-
-func (s *NetrcSuite) TestAddExisting(c *C) {
-	f, err := Parse("./examples/login.netrc")
-	c.Assert(err, IsNil)
-	f.AddMachine("api.heroku.com", "l", "p")
-	c.Check(f.Render(), Equals, "# this is my login netrc\nmachine api.heroku.com\n  login l\n  password p\n")
-}
-
-func (s *NetrcSuite) TestRemove(c *C) {
-	f, err := Parse("./examples/sample_multi.netrc")
-	c.Assert(err, IsNil)
-	f.RemoveMachine("m")
-	c.Check(f.Render(), Equals, "# this is my netrc with multiple machines\nmachine n\n  login ln # this is my n-username\n  password pn\n")
-}
-
-func (s *NetrcSuite) TestSetPassword(c *C) {
-	f, err := Parse("./examples/login.netrc")
-	c.Assert(err, IsNil)
-	heroku := f.Machine("api.heroku.com")
-	heroku.Set("password", "foobar")
-	c.Check(f.Render(), Equals, "# this is my login netrc\nmachine api.heroku.com\n  login jeff@heroku.com # this is my username\n  password foobar\n")
 }
 
 func (s *NetrcSuite) TestSampleMulti(c *C) {
@@ -143,11 +100,4 @@ func (s *NetrcSuite) TestPermissive(c *C) {
 	c.Check(f.Machine("m").Get("password"), Equals, "p")
 	body, _ := ioutil.ReadFile(f.Path)
 	c.Check(f.Render(), Equals, string(body))
-}
-
-func (s *NetrcSuite) TestRemoveFromComplicated(c *C) {
-	f, err := Parse("./examples/complicated.netrc")
-	c.Assert(err, IsNil)
-	f.RemoveMachine("git.heroku.com")
-	c.Assert(f.Machine("git.heroku.com"), IsNil)
 }
