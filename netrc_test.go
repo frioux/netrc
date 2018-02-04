@@ -1,11 +1,10 @@
-package netrc_test
+package netrc
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/dickeyxxx/netrc"
 	. "gopkg.in/check.v1"
 )
 
@@ -17,7 +16,7 @@ type NetrcSuite struct{}
 var _ = Suite(&NetrcSuite{})
 
 func (s *NetrcSuite) TestLogin(c *C) {
-	f, err := netrc.Parse("./examples/login.netrc")
+	f, err := Parse("./examples/login.netrc")
 	c.Assert(err, IsNil)
 	heroku := f.Machine("api.heroku.com")
 	c.Check(heroku.Get("login"), Equals, "jeff@heroku.com")
@@ -27,7 +26,7 @@ func (s *NetrcSuite) TestLogin(c *C) {
 }
 
 func (s *NetrcSuite) TestSave(c *C) {
-	f, err := netrc.Parse("./examples/login.netrc")
+	f, err := Parse("./examples/login.netrc")
 	c.Assert(err, IsNil)
 	f.Path = "./examples/login-new.netrc"
 	err = f.Save()
@@ -39,7 +38,7 @@ func (s *NetrcSuite) TestSave(c *C) {
 }
 
 func (s *NetrcSuite) TestAdd(c *C) {
-	f, err := netrc.Parse("./examples/login.netrc")
+	f, err := Parse("./examples/login.netrc")
 	c.Assert(err, IsNil)
 	f.AddMachine("m", "l", "p")
 	c.Check(f.Render(), Equals, "# this is my login netrc\nmachine api.heroku.com\n  login jeff@heroku.com # this is my username\n  password foo\n"+
@@ -47,21 +46,21 @@ func (s *NetrcSuite) TestAdd(c *C) {
 }
 
 func (s *NetrcSuite) TestAddExisting(c *C) {
-	f, err := netrc.Parse("./examples/login.netrc")
+	f, err := Parse("./examples/login.netrc")
 	c.Assert(err, IsNil)
 	f.AddMachine("api.heroku.com", "l", "p")
 	c.Check(f.Render(), Equals, "# this is my login netrc\nmachine api.heroku.com\n  login l\n  password p\n")
 }
 
 func (s *NetrcSuite) TestRemove(c *C) {
-	f, err := netrc.Parse("./examples/sample_multi.netrc")
+	f, err := Parse("./examples/sample_multi.netrc")
 	c.Assert(err, IsNil)
 	f.RemoveMachine("m")
 	c.Check(f.Render(), Equals, "# this is my netrc with multiple machines\nmachine n\n  login ln # this is my n-username\n  password pn\n")
 }
 
 func (s *NetrcSuite) TestSetPassword(c *C) {
-	f, err := netrc.Parse("./examples/login.netrc")
+	f, err := Parse("./examples/login.netrc")
 	c.Assert(err, IsNil)
 	heroku := f.Machine("api.heroku.com")
 	heroku.Set("password", "foobar")
@@ -69,7 +68,7 @@ func (s *NetrcSuite) TestSetPassword(c *C) {
 }
 
 func (s *NetrcSuite) TestSampleMulti(c *C) {
-	f, err := netrc.Parse("./examples/sample_multi.netrc")
+	f, err := Parse("./examples/sample_multi.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("login"), Equals, "lm")
 	c.Check(f.Machine("m").Get("password"), Equals, "pm")
@@ -80,7 +79,7 @@ func (s *NetrcSuite) TestSampleMulti(c *C) {
 }
 
 func (s *NetrcSuite) TestSampleMultiWithDefault(c *C) {
-	f, err := netrc.Parse("./examples/sample_multi_with_default.netrc")
+	f, err := Parse("./examples/sample_multi_with_default.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("login"), Equals, "lm")
 	c.Check(f.Machine("m").Get("password"), Equals, "pm")
@@ -91,7 +90,7 @@ func (s *NetrcSuite) TestSampleMultiWithDefault(c *C) {
 }
 
 func (s *NetrcSuite) TestNewlineless(c *C) {
-	f, err := netrc.Parse("./examples/newlineless.netrc")
+	f, err := Parse("./examples/newlineless.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("login"), Equals, "l")
 	c.Check(f.Machine("m").Get("password"), Equals, "p")
@@ -100,7 +99,7 @@ func (s *NetrcSuite) TestNewlineless(c *C) {
 }
 
 func (s *NetrcSuite) TestBadDefaultOrder(c *C) {
-	f, err := netrc.Parse("./examples/bad_default_order.netrc")
+	f, err := Parse("./examples/bad_default_order.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("mail.google.com").Get("login"), Equals, "joe@gmail.com")
 	c.Check(f.Machine("mail.google.com").Get("password"), Equals, "somethingSecret")
@@ -111,7 +110,7 @@ func (s *NetrcSuite) TestBadDefaultOrder(c *C) {
 }
 
 func (s *NetrcSuite) TestDefaultOnly(c *C) {
-	f, err := netrc.Parse("./examples/default_only.netrc")
+	f, err := Parse("./examples/default_only.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("default").Get("login"), Equals, "ld")
 	c.Check(f.Machine("default").Get("password"), Equals, "pd")
@@ -120,7 +119,7 @@ func (s *NetrcSuite) TestDefaultOnly(c *C) {
 }
 
 func (s *NetrcSuite) TestGood(c *C) {
-	f, err := netrc.Parse("./examples/good.netrc")
+	f, err := Parse("./examples/good.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("mail.google.com").Get("login"), Equals, "joe@gmail.com")
 	c.Check(f.Machine("mail.google.com").Get("account"), Equals, "justagmail")
@@ -130,7 +129,7 @@ func (s *NetrcSuite) TestGood(c *C) {
 }
 
 func (s *NetrcSuite) TestPassword(c *C) {
-	f, err := netrc.Parse("./examples/password.netrc")
+	f, err := Parse("./examples/password.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("password"), Equals, "p")
 	body, _ := ioutil.ReadFile(f.Path)
@@ -138,7 +137,7 @@ func (s *NetrcSuite) TestPassword(c *C) {
 }
 
 func (s *NetrcSuite) TestPermissive(c *C) {
-	f, err := netrc.Parse("./examples/permissive.netrc")
+	f, err := Parse("./examples/permissive.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("login"), Equals, "l")
 	c.Check(f.Machine("m").Get("password"), Equals, "p")
@@ -147,7 +146,7 @@ func (s *NetrcSuite) TestPermissive(c *C) {
 }
 
 func (s *NetrcSuite) TestRemoveFromComplicated(c *C) {
-	f, err := netrc.Parse("./examples/complicated.netrc")
+	f, err := Parse("./examples/complicated.netrc")
 	c.Assert(err, IsNil)
 	f.RemoveMachine("git.heroku.com")
 	c.Assert(f.Machine("git.heroku.com"), IsNil)
