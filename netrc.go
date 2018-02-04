@@ -18,13 +18,13 @@ var ErrInvalidNetrc = errors.New("Invalid netrc")
 
 // Netrc file
 type Netrc struct {
-	Path     string
-	machines []*Machine
-	tokens   []string
+	Path   string
+	logins []*Login
+	tokens []string
 }
 
-// Machine from the netrc file
-type Machine struct {
+// Login from the netrc file
+type Login struct {
 	Name      string
 	IsDefault bool
 	tokens    []string
@@ -45,9 +45,9 @@ func Parse(path string) (*Netrc, error) {
 	return netrc, nil
 }
 
-// Machine gets a machine by name
-func (n *Netrc) Machine(name string) *Machine {
-	for _, m := range n.machines {
+// Machine gets a login by machine name
+func (n *Netrc) Machine(name string) *Login {
+	for _, m := range n.logins {
 		if m.Name == name {
 			return m
 		}
@@ -59,8 +59,8 @@ func (n *Netrc) Machine(name string) *Machine {
 func (n *Netrc) AddMachine(name, login, password string) {
 	machine := n.Machine(name)
 	if machine == nil {
-		machine = &Machine{}
-		n.machines = append(n.machines, machine)
+		machine = &Login{}
+		n.logins = append(n.logins, machine)
 	}
 	machine.Name = name
 	machine.tokens = []string{"machine ", name, "\n"}
@@ -70,9 +70,9 @@ func (n *Netrc) AddMachine(name, login, password string) {
 
 // RemoveMachine remove a machine
 func (n *Netrc) RemoveMachine(name string) {
-	for i, machine := range n.machines {
+	for i, machine := range n.logins {
 		if machine.Name == name {
-			n.machines = append(n.machines[:i], n.machines[i+1:]...)
+			n.logins = append(n.logins[:i], n.logins[i+1:]...)
 			// continue removing but start over since the indexes changed
 			n.RemoveMachine(name)
 			return
@@ -86,7 +86,7 @@ func (n *Netrc) Render() string {
 	for _, token := range n.tokens {
 		b.WriteString(token)
 	}
-	for _, machine := range n.machines {
+	for _, machine := range n.logins {
 		for _, token := range machine.tokens {
 			b.WriteString(token)
 		}
@@ -180,14 +180,14 @@ func lex(file io.Reader) []string {
 
 func parse(tokens []string) (*Netrc, error) {
 	n := &Netrc{}
-	n.machines = make([]*Machine, 0, 20)
-	var machine *Machine
+	n.logins = make([]*Login, 0, 20)
+	var machine *Login
 	for i, token := range tokens {
 		// group tokens into machines
 		if token == "machine" || token == "default" {
 			// start new group
-			machine = &Machine{}
-			n.machines = append(n.machines, machine)
+			machine = &Login{}
+			n.logins = append(n.logins, machine)
 			if token == "default" {
 				machine.IsDefault = true
 				machine.Name = "default"
@@ -205,7 +205,7 @@ func parse(tokens []string) (*Netrc, error) {
 }
 
 // Get a property from a machine
-func (m *Machine) Get(name string) string {
+func (m *Login) Get(name string) string {
 	i := 4
 	if m.IsDefault {
 		i = 2
@@ -222,7 +222,7 @@ func (m *Machine) Get(name string) string {
 }
 
 // Set a property on the machine
-func (m *Machine) Set(name, value string) {
+func (m *Login) Set(name, value string) {
 	i := 4
 	if m.IsDefault {
 		i = 2
