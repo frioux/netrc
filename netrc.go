@@ -54,6 +54,16 @@ func (n *Netrc) Machine(name string) *Login {
 	return nil
 }
 
+// MachineAndLogin gets a login by machine name and login name
+func (n *Netrc) MachineAndLogin(name, login string) *Login {
+	for _, m := range n.logins {
+		if m.Name == name && m.Get("login") == login {
+			return m
+		}
+	}
+	return nil
+}
+
 func read(path string) (io.Reader, error) {
 	if filepath.Ext(path) == ".gpg" {
 		cmd := exec.Command("gpg", "--batch", "--quiet", "--decrypt", path)

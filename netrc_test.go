@@ -19,6 +19,10 @@ func (s *NetrcSuite) TestLogin(c *C) {
 	heroku := f.Machine("api.heroku.com")
 	c.Check(heroku.Get("login"), Equals, "jeff@heroku.com")
 	c.Check(heroku.Get("password"), Equals, "foo")
+
+	heroku2 := f.MachineAndLogin("api.heroku.com", "jeff2@heroku.com")
+	c.Check(heroku2.Get("login"), Equals, "jeff2@heroku.com")
+	c.Check(heroku2.Get("password"), Equals, "bar")
 }
 
 func (s *NetrcSuite) TestSampleMulti(c *C) {
