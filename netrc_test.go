@@ -1,7 +1,6 @@
 package netrc
 
 import (
-	"io/ioutil"
 	"testing"
 
 	. "gopkg.in/check.v1"
@@ -20,8 +19,6 @@ func (s *NetrcSuite) TestLogin(c *C) {
 	heroku := f.Machine("api.heroku.com")
 	c.Check(heroku.Get("login"), Equals, "jeff@heroku.com")
 	c.Check(heroku.Get("password"), Equals, "foo")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestSampleMulti(c *C) {
@@ -31,8 +28,6 @@ func (s *NetrcSuite) TestSampleMulti(c *C) {
 	c.Check(f.Machine("m").Get("password"), Equals, "pm")
 	c.Check(f.Machine("n").Get("login"), Equals, "ln")
 	c.Check(f.Machine("n").Get("password"), Equals, "pn")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestSampleMultiWithDefault(c *C) {
@@ -42,8 +37,6 @@ func (s *NetrcSuite) TestSampleMultiWithDefault(c *C) {
 	c.Check(f.Machine("m").Get("password"), Equals, "pm")
 	c.Check(f.Machine("n").Get("login"), Equals, "ln")
 	c.Check(f.Machine("n").Get("password"), Equals, "pn")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestNewlineless(c *C) {
@@ -51,8 +44,6 @@ func (s *NetrcSuite) TestNewlineless(c *C) {
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("login"), Equals, "l")
 	c.Check(f.Machine("m").Get("password"), Equals, "p")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestBadDefaultOrder(c *C) {
@@ -62,8 +53,6 @@ func (s *NetrcSuite) TestBadDefaultOrder(c *C) {
 	c.Check(f.Machine("mail.google.com").Get("password"), Equals, "somethingSecret")
 	c.Check(f.Machine("ray").Get("login"), Equals, "demo")
 	c.Check(f.Machine("ray").Get("password"), Equals, "mypassword")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestDefaultOnly(c *C) {
@@ -71,8 +60,6 @@ func (s *NetrcSuite) TestDefaultOnly(c *C) {
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("default").Get("login"), Equals, "ld")
 	c.Check(f.Machine("default").Get("password"), Equals, "pd")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestGood(c *C) {
@@ -81,16 +68,12 @@ func (s *NetrcSuite) TestGood(c *C) {
 	c.Check(f.Machine("mail.google.com").Get("login"), Equals, "joe@gmail.com")
 	c.Check(f.Machine("mail.google.com").Get("account"), Equals, "justagmail")
 	c.Check(f.Machine("mail.google.com").Get("password"), Equals, "somethingSecret")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestPassword(c *C) {
 	f, err := Parse("./examples/password.netrc")
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("password"), Equals, "p")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }
 
 func (s *NetrcSuite) TestPermissive(c *C) {
@@ -98,6 +81,4 @@ func (s *NetrcSuite) TestPermissive(c *C) {
 	c.Assert(err, IsNil)
 	c.Check(f.Machine("m").Get("login"), Equals, "l")
 	c.Check(f.Machine("m").Get("password"), Equals, "p")
-	body, _ := ioutil.ReadFile(f.Path)
-	c.Check(f.Render(), Equals, string(body))
 }

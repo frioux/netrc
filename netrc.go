@@ -54,20 +54,6 @@ func (n *Netrc) Machine(name string) *Login {
 	return nil
 }
 
-// Render out the netrc file to a string
-func (n *Netrc) Render() string {
-	var b bytes.Buffer
-	for _, token := range n.tokens {
-		b.WriteString(token)
-	}
-	for _, machine := range n.logins {
-		for _, token := range machine.tokens {
-			b.WriteString(token)
-		}
-	}
-	return b.String()
-}
-
 func read(path string) (io.Reader, error) {
 	if filepath.Ext(path) == ".gpg" {
 		cmd := exec.Command("gpg", "--batch", "--quiet", "--decrypt", path)
