@@ -3,86 +3,79 @@ package netrc
 import (
 	"testing"
 
-	. "gopkg.in/check.v1"
+	"github.com/stretchr/testify/assert"
 )
 
-// Hook up gocheck into the "go test" runner.
-func Test(t *testing.T) { TestingT(t) }
-
-type NetrcSuite struct{}
-
-var _ = Suite(&NetrcSuite{})
-
-func (s *NetrcSuite) TestLogin(c *C) {
+func TestLogin(t *testing.T) {
 	f, err := Parse("./examples/login.netrc")
-	c.Assert(err, IsNil)
+	assert.Nil(t, err)
 	heroku := f.Machine("api.heroku.com")
-	c.Check(heroku.Get("login"), Equals, "jeff@heroku.com")
-	c.Check(heroku.Get("password"), Equals, "foo")
+	assert.Equal(t, "jeff@heroku.com", heroku.Get("login"))
+	assert.Equal(t, "foo", heroku.Get("password"))
 
 	heroku2 := f.MachineAndLogin("api.heroku.com", "jeff2@heroku.com")
-	c.Check(heroku2.Get("login"), Equals, "jeff2@heroku.com")
-	c.Check(heroku2.Get("password"), Equals, "bar")
+	assert.Equal(t, heroku2.Get("login"), "jeff2@heroku.com")
+	assert.Equal(t, heroku2.Get("password"), "bar")
 }
 
-func (s *NetrcSuite) TestSampleMulti(c *C) {
+func TestSampleMulti(t *testing.T) {
 	f, err := Parse("./examples/sample_multi.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("m").Get("login"), Equals, "lm")
-	c.Check(f.Machine("m").Get("password"), Equals, "pm")
-	c.Check(f.Machine("n").Get("login"), Equals, "ln")
-	c.Check(f.Machine("n").Get("password"), Equals, "pn")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("m").Get("login"), "lm")
+	assert.Equal(t, f.Machine("m").Get("password"), "pm")
+	assert.Equal(t, f.Machine("n").Get("login"), "ln")
+	assert.Equal(t, f.Machine("n").Get("password"), "pn")
 }
 
-func (s *NetrcSuite) TestSampleMultiWithDefault(c *C) {
+func TestSampleMultiWithDefault(t *testing.T) {
 	f, err := Parse("./examples/sample_multi_with_default.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("m").Get("login"), Equals, "lm")
-	c.Check(f.Machine("m").Get("password"), Equals, "pm")
-	c.Check(f.Machine("n").Get("login"), Equals, "ln")
-	c.Check(f.Machine("n").Get("password"), Equals, "pn")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("m").Get("login"), "lm")
+	assert.Equal(t, f.Machine("m").Get("password"), "pm")
+	assert.Equal(t, f.Machine("n").Get("login"), "ln")
+	assert.Equal(t, f.Machine("n").Get("password"), "pn")
 }
 
-func (s *NetrcSuite) TestNewlineless(c *C) {
+func TestNewlineless(t *testing.T) {
 	f, err := Parse("./examples/newlineless.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("m").Get("login"), Equals, "l")
-	c.Check(f.Machine("m").Get("password"), Equals, "p")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("m").Get("login"), "l")
+	assert.Equal(t, f.Machine("m").Get("password"), "p")
 }
 
-func (s *NetrcSuite) TestBadDefaultOrder(c *C) {
+func TestBadDefaultOrder(t *testing.T) {
 	f, err := Parse("./examples/bad_default_order.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("mail.google.com").Get("login"), Equals, "joe@gmail.com")
-	c.Check(f.Machine("mail.google.com").Get("password"), Equals, "somethingSecret")
-	c.Check(f.Machine("ray").Get("login"), Equals, "demo")
-	c.Check(f.Machine("ray").Get("password"), Equals, "mypassword")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("mail.google.com").Get("login"), "joe@gmail.com")
+	assert.Equal(t, f.Machine("mail.google.com").Get("password"), "somethingSecret")
+	assert.Equal(t, f.Machine("ray").Get("login"), "demo")
+	assert.Equal(t, f.Machine("ray").Get("password"), "mypassword")
 }
 
-func (s *NetrcSuite) TestDefaultOnly(c *C) {
+func TestDefaultOnly(t *testing.T) {
 	f, err := Parse("./examples/default_only.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("default").Get("login"), Equals, "ld")
-	c.Check(f.Machine("default").Get("password"), Equals, "pd")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("default").Get("login"), "ld")
+	assert.Equal(t, f.Machine("default").Get("password"), "pd")
 }
 
-func (s *NetrcSuite) TestGood(c *C) {
+func TestGood(t *testing.T) {
 	f, err := Parse("./examples/good.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("mail.google.com").Get("login"), Equals, "joe@gmail.com")
-	c.Check(f.Machine("mail.google.com").Get("account"), Equals, "justagmail")
-	c.Check(f.Machine("mail.google.com").Get("password"), Equals, "somethingSecret")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("mail.google.com").Get("login"), "joe@gmail.com")
+	assert.Equal(t, f.Machine("mail.google.com").Get("account"), "justagmail")
+	assert.Equal(t, f.Machine("mail.google.com").Get("password"), "somethingSecret")
 }
 
-func (s *NetrcSuite) TestPassword(c *C) {
+func TestPassword(t *testing.T) {
 	f, err := Parse("./examples/password.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("m").Get("password"), Equals, "p")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("m").Get("password"), "p")
 }
 
-func (s *NetrcSuite) TestPermissive(c *C) {
+func TestPermissive(t *testing.T) {
 	f, err := Parse("./examples/permissive.netrc")
-	c.Assert(err, IsNil)
-	c.Check(f.Machine("m").Get("login"), Equals, "l")
-	c.Check(f.Machine("m").Get("password"), Equals, "p")
+	assert.Nil(t, err)
+	assert.Equal(t, f.Machine("m").Get("login"), "l")
+	assert.Equal(t, f.Machine("m").Get("password"), "p")
 }
